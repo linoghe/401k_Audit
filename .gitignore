@@ -2,6 +2,7 @@ output/
 __pycache__/
 *.pyc
 .DS_Store
+HTML-to-PDF/
 
 # Personal financial data — never commit
 data/*.pdf
