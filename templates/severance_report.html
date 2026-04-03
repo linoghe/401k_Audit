@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Severance Agreement Compliance Audit</title>
+<style>
+    :root {
+        --color-bg: #ffffff;
+        --color-text: #1a1a2e;
+        --color-muted: #64748b;
+        --color-border: #e2e8f0;
+        --color-accent: #1e40af;
+        --color-danger: #dc2626;
+        --color-warning: #d97706;
+        --color-success: #16a34a;
+        --color-row-alt: #f8fafc;
+        --color-card: #f1f5f9;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        color: var(--color-text);
+        background: var(--color-bg);
+        line-height: 1.6;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; border-bottom: 2px solid var(--color-accent); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.05rem; margin: 1.25rem 0 0.5rem; }
+
+    .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0 1.5rem;
+    }
+
+    .summary-card {
+        background: var(--color-card);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+    }
+
+    .summary-card .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-muted);
+    }
+
+    .summary-card .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 0.15rem;
+    }
+
+    .summary-card .value.danger { color: var(--color-danger); }
+    .summary-card .value.warning { color: var(--color-warning); }
+    .summary-card .value.success { color: var(--color-success); }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.75rem 0 1.5rem;
+    }
+
+    th {
+        background: var(--color-accent);
+        color: #fff;
+        text-align: left;
+        padding: 0.5rem 0.6rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    td {
+        padding: 0.45rem 0.6rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    tr:nth-child(even) { background: var(--color-row-alt); }
+
+    .badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger  { background: #fee2e2; color: #991b1b; }
+    .badge-info    { background: #dbeafe; color: #1e40af; }
+
+    .breach-box {
+        background: #fef2f2;
+        border: 2px solid var(--color-danger);
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        margin: 1.5rem 0;
+    }
+    .breach-box h3 {
+        color: var(--color-danger);
+        margin-top: 0;
+        font-size: 1.1rem;
+    }
+    .breach-box ul {
+        margin: 0.75rem 0 0 1.25rem;
+    }
+    .breach-box li {
+        margin-bottom: 0.4rem;
+        line-height: 1.5;
+    }
+
+    .timeline {
+        position: relative;
+        margin: 1.5rem 0;
+        padding-left: 2rem;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--color-border);
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.5rem;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -1.75rem;
+        top: 0.35rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px var(--color-accent);
+    }
+    .timeline-item.late::before { background: var(--color-warning); box-shadow: 0 0 0 2px var(--color-warning); }
+    .timeline-item.missing::before { background: var(--color-danger); box-shadow: 0 0 0 2px var(--color-danger); }
+    .timeline-item.on-time::before { background: var(--color-success); box-shadow: 0 0 0 2px var(--color-success); }
+    .timeline-item.extra::before { background: #8b5cf6; box-shadow: 0 0 0 2px #8b5cf6; }
+
+    .timeline-date {
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+    .timeline-detail {
+        color: var(--color-muted);
+        font-size: 0.8rem;
+        margin-top: 0.15rem;
+    }
+
+    .agreement-terms {
+        background: var(--color-card);
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        margin: 1rem 0 1.5rem;
+    }
+    .agreement-terms dl {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 0.35rem 1rem;
+    }
+    .agreement-terms dt {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--color-muted);
+    }
+    .agreement-terms dd {
+        font-size: 0.85rem;
+    }
+
+    .amount { font-family: "SF Mono", "Cascadia Code", "Consolas", monospace; text-align: right; }
+
+    .footer {
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--color-border);
+        font-size: 0.75rem;
+        color: var(--color-muted);
+    }
+
+    @media print {
+        body { padding: 0.5cm; }
+        .breach-box { break-inside: avoid; }
+    }
+</style>
+</head>
+<body>
+
+<h1>Severance Agreement Compliance Audit</h1>
+<p class="subtitle">
+    {{ audit.employee_name }} &mdash; {{ audit.employer_name }}<br>
+    Report generated {{ generated_date }}
+</p>
+
+<!-- ================================================================== -->
+<!-- EXECUTIVE SUMMARY -->
+<!-- ================================================================== -->
+<h2>Executive Summary</h2>
+
+{% set overdue_count = audit.matches | selectattr('status', 'equalto', 'OVERDUE') | list | length %}
+{% set late_count = audit.matches | selectattr('status', 'equalto', 'LATE') | list | length %}
+{% set on_time_count = audit.matches | selectattr('status', 'equalto', 'ON_TIME') | list | length %}
+{% set paid_count = late_count + on_time_count %}
+
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="label">Total Severance Promised</div>
+        <div class="value">${{ "{:,.2f}".format(audit.total_promised) }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Paid (Gross)</div>
+        <div class="value {% if audit.total_paid < audit.total_promised %}warning{% else %}success{% endif %}">
+            ${{ "{:,.2f}".format(audit.total_paid) }}
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Severance Outstanding</div>
+        <div class="value {% if audit.total_outstanding > 0 %}danger{% else %}success{% endif %}">
+            ${{ "{:,.2f}".format(audit.total_outstanding) }}
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Expenses Unpaid</div>
+        <div class="value {% if audit.total_expenses_owed - audit.total_expenses_paid > 0 %}danger{% else %}success{% endif %}">
+            ${{ "{:,.2f}".format(audit.total_expenses_owed - audit.total_expenses_paid) }}
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Breach Amount</div>
+        <div class="value {% if audit.total_breach_amount > 0 %}danger{% else %}success{% endif %}">
+            ${{ "{:,.2f}".format(audit.total_breach_amount) }}
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Payments Made / Scheduled</div>
+        <div class="value {% if overdue_count > 0 %}danger{% else %}success{% endif %}">
+            {{ paid_count }} / {{ audit.scheduled_payments | length }}
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Late Payments</div>
+        <div class="value {% if late_count > 0 %}warning{% else %}success{% endif %}">
+            {{ late_count }}
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Avg / Max Days Late</div>
+        <div class="value {% if audit.avg_days_late > 0 %}warning{% else %}success{% endif %}">
+            {{ "%.0f"|format(audit.avg_days_late) }} / {{ audit.max_days_late }}
+        </div>
+    </div>
+</div>
+
+{% if audit.total_breach_amount > 0 %}
+<div class="breach-box">
+    <h3>Agreement Breaches Identified</h3>
+    <ul>
+    {% for note in audit.notes %}
+        <li>{{ note }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+
+<!-- ================================================================== -->
+<!-- AGREEMENT TERMS -->
+<!-- ================================================================== -->
+<h2>Agreement Terms</h2>
+
+<div class="agreement-terms">
+    <dl>
+        <dt>Agreement Date</dt>
+        <dd>{{ audit.agreement_date }}</dd>
+        <dt>Digitally Signed</dt>
+        <dd>{{ audit.signature_date }}</dd>
+        <dt>Separation Date</dt>
+        <dd>{{ audit.separation_date }}</dd>
+        <dt>Salary Continuation</dt>
+        <dd>Through {{ audit.salary_continuation_end }}</dd>
+        <dt>Healthcare Continuation</dt>
+        <dd>Through {{ audit.healthcare_end }}</dd>
+        <dt>Total Severance</dt>
+        <dd>${{ "{:,.2f}".format(audit.total_promised) }} ({{ audit.scheduled_payments | length }} payments of ${{ "{:,.2f}".format(audit.scheduled_payments[0].amount) }})</dd>
+        <dt>Payment Schedule</dt>
+        <dd>Semi-monthly on the 1st and 16th</dd>
+        {% for exp in audit.expenses %}
+        <dt>Expense Reimbursement</dt>
+        <dd>{{ exp.description }} — ${{ "{:,.2f}".format(exp.amount) }}</dd>
+        {% endfor %}
+        <dt>Document Reference</dt>
+        <dd>PQIMU-2FHRU-WG3WY-DJQ37 (PandaDoc)</dd>
+    </dl>
+</div>
+
+<h3>Scheduled Payment Table (per Exhibit A)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Due Date</th>
+            <th>Description</th>
+            <th class="amount">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for sp in audit.scheduled_payments %}
+        <tr>
+            <td>{{ sp.number }}</td>
+            <td>{{ sp.due_date }}</td>
+            <td>{{ sp.description }}</td>
+            <td class="amount">${{ "{:,.2f}".format(sp.amount) }}</td>
+        </tr>
+    {% endfor %}
+        <tr style="font-weight:700; border-top:2px solid var(--color-accent);">
+            <td colspan="3">Total</td>
+            <td class="amount">${{ "{:,.2f}".format(audit.total_promised) }}</td>
+        </tr>
+    </tbody>
+</table>
+
+
+<!-- ================================================================== -->
+<!-- PAYMENT RECONCILIATION -->
+<!-- ================================================================== -->
+<h2>Payment-by-Payment Reconciliation</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Due Date</th>
+            <th class="amount">Scheduled</th>
+            <th>Actual Pay Date</th>
+            <th>Pay Period</th>
+            <th class="amount">Gross Paid</th>
+            <th>Days Late</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for m in audit.matches %}
+        <tr>
+            <td>{{ m.scheduled.number }}</td>
+            <td>{{ m.scheduled.due_date }}</td>
+            <td class="amount">${{ "{:,.2f}".format(m.scheduled.amount) }}</td>
+            {% if m.actual %}
+            <td>{{ m.actual.pay_date }}</td>
+            <td>{{ m.actual.pay_period_start }} – {{ m.actual.pay_period_end }}</td>
+            <td class="amount">${{ "{:,.2f}".format(m.actual.gross_amount) }}</td>
+            <td>{{ m.days_late if m.days_late else 0 }}</td>
+            {% else %}
+            <td>—</td>
+            <td>—</td>
+            <td class="amount">—</td>
+            <td>—</td>
+            {% endif %}
+            <td>
+                {% if m.status == 'ON_TIME' %}
+                    <span class="badge badge-success">On Time</span>
+                {% elif m.status == 'LATE' %}
+                    <span class="badge badge-warning">Late</span>
+                {% elif m.status == 'OVERDUE' %}
+                    <span class="badge badge-danger">Overdue</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if audit.extra_payments %}
+<h3>Unscheduled Payments (Outside Agreement Scope)</h3>
+<p style="font-size:0.85rem; color:var(--color-muted); margin-bottom:0.5rem;">
+    The following payments were received but do not correspond to any scheduled severance payment in Exhibit A.
+</p>
+<table>
+    <thead>
+        <tr>
+            <th>Pay Date</th>
+            <th>Pay Period</th>
+            <th class="amount">Gross</th>
+            <th class="amount">Net</th>
+            <th>Source</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ep in audit.extra_payments %}
+        <tr>
+            <td>{{ ep.pay_date }}</td>
+            <td>{{ ep.pay_period_start }} – {{ ep.pay_period_end }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ep.gross_amount) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ep.net_amount) }}</td>
+            <td style="font-size:0.75rem;">{{ ep.source_file }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+
+<!-- ================================================================== -->
+<!-- PAYMENT TIMELINE -->
+<!-- ================================================================== -->
+<h2>Payment Timeline</h2>
+
+<div class="timeline">
+    <div class="timeline-item on-time">
+        <div class="timeline-date">{{ audit.agreement_date }} — Agreement Date</div>
+        <div class="timeline-detail">Employment terminated effective this date.</div>
+    </div>
+    <div class="timeline-item on-time">
+        <div class="timeline-date">{{ audit.signature_date }} — Agreement Signed</div>
+        <div class="timeline-detail">Digitally signed by both parties via PandaDoc.</div>
+    </div>
+    {% for m in audit.matches %}
+    <div class="timeline-item {{ 'missing' if m.status == 'OVERDUE' else ('late' if m.status == 'LATE' else 'on-time') }}">
+        <div class="timeline-date">
+            Payment #{{ m.scheduled.number }} — Due {{ m.scheduled.due_date }}
+        </div>
+        {% if m.actual %}
+        <div class="timeline-detail">
+            Paid {{ m.actual.pay_date }} (${{ "{:,.2f}".format(m.actual.gross_amount) }} gross)
+            {% if m.days_late and m.days_late > 0 %}
+                — <strong>{{ m.days_late }} days late</strong>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="timeline-detail" style="color:var(--color-danger); font-weight:600;">
+            Overdue — ${{ "{:,.2f}".format(m.scheduled.amount) }} outstanding.
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% for ep in audit.extra_payments %}
+    <div class="timeline-item extra">
+        <div class="timeline-date">{{ ep.pay_date }} — Unscheduled Payment</div>
+        <div class="timeline-detail">
+            ${{ "{:,.2f}".format(ep.gross_amount) }} gross, period {{ ep.pay_period_start }} – {{ ep.pay_period_end }}.
+            Outside agreement scope.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+<!-- ================================================================== -->
+<!-- EXPENSE REIMBURSEMENT -->
+<!-- ================================================================== -->
+<h2>Expense Reimbursement</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th class="amount">Amount Owed</th>
+            <th class="amount">Amount Paid</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for exp in audit.expenses %}
+        <tr>
+            <td>{{ exp.description }}</td>
+            <td class="amount">${{ "{:,.2f}".format(exp.amount) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(exp.paid_amount) }}</td>
+            <td>
+                {% if exp.paid %}
+                    <span class="badge badge-success">Paid</span>
+                {% else %}
+                    <span class="badge badge-danger">Unpaid</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<p style="font-size:0.85rem; color:var(--color-muted);">
+    The agreement states this expense is to be paid "as an expense (i.e. not taxed) via Gusto Payroll."
+    All post-separation paystubs show $0.00 in Total Reimbursements.
+</p>
+
+
+<!-- ================================================================== -->
+<!-- DETAILED PAYSTUB BREAKDOWN -->
+<!-- ================================================================== -->
+<h2>Post-Separation Paystub Detail</h2>
+
+<p style="font-size:0.85rem; color:var(--color-muted); margin-bottom:0.5rem;">
+    Tax withholding and deduction breakdown for each post-separation payment, extracted from Gusto pay stubs.
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Pay Date</th>
+            <th>Period</th>
+            <th class="amount">Gross</th>
+            <th class="amount">Fed Tax</th>
+            <th class="amount">State Tax</th>
+            <th class="amount">SS</th>
+            <th class="amount">Medicare</th>
+            <th class="amount">401(k)</th>
+            <th class="amount">Roth 401(k)</th>
+            <th class="amount">Net Pay</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ap in audit.actual_payments %}
+        <tr>
+            <td>{{ ap.pay_date }}</td>
+            <td style="font-size:0.75rem;">{{ ap.pay_period_start }} – {{ ap.pay_period_end }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.gross_amount) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.federal_tax) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.state_tax) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.social_security) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.medicare) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.traditional_401k) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.roth_401k) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(ap.net_amount) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<!-- ================================================================== -->
+<!-- FINANCIAL SUMMARY -->
+<!-- ================================================================== -->
+<h2>Financial Summary of Breach</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th class="amount">Owed</th>
+            <th class="amount">Paid</th>
+            <th class="amount">Outstanding</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Severance Payments ({{ audit.scheduled_payments | length }} × ${{ "{:,.2f}".format(audit.scheduled_payments[0].amount) }})</td>
+            <td class="amount">${{ "{:,.2f}".format(audit.total_promised) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(audit.total_paid) }}</td>
+            <td class="amount" style="color:{% if audit.total_outstanding > 0 %}var(--color-danger){% else %}var(--color-success){% endif %};">
+                ${{ "{:,.2f}".format(audit.total_outstanding) }}
+            </td>
+        </tr>
+        {% for exp in audit.expenses %}
+        <tr>
+            <td>{{ exp.description }}</td>
+            <td class="amount">${{ "{:,.2f}".format(exp.amount) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(exp.paid_amount) }}</td>
+            <td class="amount" style="color:{% if exp.amount - exp.paid_amount > 0 %}var(--color-danger){% else %}var(--color-success){% endif %};">
+                ${{ "{:,.2f}".format(exp.amount - exp.paid_amount) }}
+            </td>
+        </tr>
+        {% endfor %}
+        <tr style="font-weight:700; border-top:2px solid var(--color-accent);">
+            <td>Total</td>
+            <td class="amount">${{ "{:,.2f}".format(audit.total_promised + audit.total_expenses_owed) }}</td>
+            <td class="amount">${{ "{:,.2f}".format(audit.total_paid + audit.total_expenses_paid) }}</td>
+            <td class="amount" style="color:var(--color-danger);">
+                ${{ "{:,.2f}".format(audit.total_breach_amount) }}
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<!-- ================================================================== -->
+<!-- METHODOLOGY & LEGAL NOTES -->
+<!-- ================================================================== -->
+<h2>Methodology &amp; Notes</h2>
+
+<h3>Data Sources</h3>
+<ul style="margin:0.5rem 0 1rem 1.25rem; font-size:0.85rem;">
+    <li><strong>Severance Agreement:</strong> "Release and Settlement Agreement" dated {{ audit.agreement_date }},
+        Document Ref PQIMU-2FHRU-WG3WY-DJQ37, digitally signed {{ audit.signature_date }} via PandaDoc.</li>
+    <li><strong>Paystub Records:</strong> {{ audit.actual_payments | length }} post-separation Gusto pay stubs
+        (all processed as Off-Cycle Payroll).</li>
+</ul>
+
+<h3>Matching Methodology</h3>
+<p style="font-size:0.85rem; margin-bottom:0.75rem;">
+    Each scheduled payment from Exhibit A was matched to the nearest actual paystub by pay date.
+    A payment is classified as <strong>Late</strong> if the actual pay date is after the scheduled date,
+    and <strong>Overdue</strong> if no corresponding payment has been received.
+    Matching is sequential: the first post-separation payment fulfills the first scheduled
+    obligation, the second fulfills the second, and so on. Amounts are compared at the
+    gross level (${{ "{:,.2f}".format(audit.scheduled_payments[0].amount) }} per payment).
+</p>
+
+<h3>Legal Framework</h3>
+<p style="font-size:0.85rem; margin-bottom:0.75rem;">
+    Section 5 of the Agreement provides that "the Party claiming breach or non-compliance may file
+    and pursue whatever civil action and/or actions in equity against the breaching or non-compliant
+    Party" and that "the prevailing Party to any action initiated under the terms of this Agreement
+    shall be reimbursed for costs and expenses, including reasonable attorney's fees."
+    The Agreement is governed by Maryland law (Section 12).
+</p>
+
+<h3>Limitations</h3>
+<ul style="margin:0.5rem 0 1rem 1.25rem; font-size:0.85rem;">
+    <li>Healthcare continuation cannot be verified from paystub data alone; the employee should
+        confirm coverage through insurance records.</li>
+    <li>This report covers gross payment compliance only. Net pay varies due to tax withholding
+        and 401(k) deductions, which are separate from the severance obligation.</li>
+    <li>The Miro expense reimbursement status is inferred from the "Total Reimbursements" field
+        on each paystub ($0.00 on all post-separation stubs). It is possible the expense was paid
+        through a separate channel not reflected in payroll.</li>
+</ul>
+
+
+<div class="footer">
+    <p>
+        This report was generated programmatically from primary source documents (severance agreement
+        and Gusto pay stubs) on {{ generated_date }}. It is intended for informational and legal review
+        purposes. Prepared for {{ audit.employee_name }}.
+    </p>
+</div>
+
+</body>
+</html>

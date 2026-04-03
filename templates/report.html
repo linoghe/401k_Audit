@@ -145,23 +145,23 @@
     </div>
     <div class="summary-card">
         <div class="label">Employee Contributions Withheld</div>
-        <div class="value">${{ "%.2f"|format(recon_summary.total_employee_deducted) }}</div>
+        <div class="value">${{ "{:,.2f}".format(recon_summary.total_employee_deducted) }}</div>
     </div>
     <div class="summary-card">
         <div class="label">Employer Match Reported</div>
-        <div class="value">${{ "%.2f"|format(recon_summary.total_employer_match) }}</div>
+        <div class="value">${{ "{:,.2f}".format(recon_summary.total_employer_match) }}</div>
     </div>
     <div class="summary-card">
         <div class="label">Total Expected in 401(k)</div>
-        <div class="value">${{ "%.2f"|format(recon_summary.total_expected) }}</div>
+        <div class="value">${{ "{:,.2f}".format(recon_summary.total_expected) }}</div>
     </div>
     <div class="summary-card">
         <div class="label">Actually Deposited (Completed)</div>
-        <div class="value {% if recon_summary.total_deposited_completed < recon_summary.total_expected %}danger{% else %}success{% endif %}">${{ "%.2f"|format(recon_summary.total_deposited_completed) }}</div>
+        <div class="value {% if recon_summary.total_deposited_completed < recon_summary.total_expected %}danger{% else %}success{% endif %}">${{ "{:,.2f}".format(recon_summary.total_deposited_completed) }}</div>
     </div>
     <div class="summary-card">
         <div class="label">Total Shortfall</div>
-        <div class="value danger">${{ "%.2f"|format(recon_summary.total_shortfall) }}</div>
+        <div class="value danger">${{ "{:,.2f}".format(recon_summary.total_shortfall) }}</div>
     </div>
 </div>
 
@@ -195,11 +195,11 @@
 <div class="summary-grid">
     <div class="summary-card">
         <div class="label">Missed Investment Growth</div>
-        <div class="value danger">${{ "%.2f"|format(growth_summ.total_missed_growth) }}</div>
+        <div class="value danger">${{ "{:,.2f}".format(growth_summ.total_missed_growth) }}</div>
     </div>
     <div class="summary-card">
         <div class="label">Total Owed (Principal + Growth)</div>
-        <div class="value danger">${{ "%.2f"|format(growth_summ.total_owed) }}</div>
+        <div class="value danger">${{ "{:,.2f}".format(growth_summ.total_owed) }}</div>
     </div>
 </div>
 {% endif %}
@@ -226,13 +226,13 @@
     <tr>
         <td>{{ r.pay_period }}</td>
         <td>{{ r.deduction_date.strftime('%Y-%m-%d') }}</td>
-        <td class="amount">${{ "%.2f"|format(r.deduction_amount) }}</td>
-        <td class="amount">${{ "%.2f"|format(r.employer_match) }}</td>
-        <td class="amount">${{ "%.2f"|format(r.expected_total) }}</td>
-        <td>{{ r.deposit_date.strftime('%Y-%m-%d') if r.deposit_date else '&mdash;' }}</td>
-        <td class="amount">{{ "$%.2f"|format(r.deposit_amount) if r.deposit_amount is not none else '&mdash;' }}</td>
-        <td class="amount {% if r.amount_shortfall > 0 %}status-missing{% endif %}">${{ "%.2f"|format(r.amount_shortfall) }}</td>
-        <td>{{ r.days_to_deposit if r.days_to_deposit is not none else '&mdash;' }}</td>
+        <td class="amount">${{ "{:,.2f}".format(r.deduction_amount) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(r.employer_match) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(r.expected_total) }}</td>
+        <td>{{ r.deposit_date.strftime('%Y-%m-%d') if r.deposit_date else '—' }}</td>
+        <td class="amount">{{ "${:,.2f}".format(r.deposit_amount) if r.deposit_amount is not none else '—' }}</td>
+        <td class="amount {% if r.amount_shortfall > 0 %}status-missing{% endif %}">${{ "{:,.2f}".format(r.amount_shortfall) }}</td>
+        <td>{{ r.days_to_deposit if r.days_to_deposit is not none else '—' }}</td>
         <td class="{% if 'unfunded' in r.status %}status-unfunded{% elif 'missing' in r.status %}status-missing{% elif 'partial' in r.status or 'late' in r.status %}status-partial{% else %}status-ok{% endif %}">{{ r.status|upper }}</td>
     </tr>
 {% endfor %}
@@ -262,12 +262,12 @@
         <td>{{ g.pay_period }}</td>
         <td>{{ g.deduction_date.strftime('%Y-%m-%d') }}</td>
         <td>{{ g.fund_ticker }}</td>
-        <td class="amount">${{ "%.2f"|format(g.missed_amount) }}</td>
-        <td class="amount">{{ "$%.4f"|format(g.nav_on_due_date) if g.nav_on_due_date else '&mdash;' }}</td>
-        <td class="amount">{{ "$%.4f"|format(g.nav_current) if g.nav_current else '&mdash;' }}</td>
-        <td class="amount">{{ "%.4f"|format(g.growth_factor) if g.growth_factor else '&mdash;' }}x</td>
-        <td class="amount">{{ "$%.2f"|format(g.current_value) if g.current_value else '&mdash;' }}</td>
-        <td class="amount status-missing">{{ "$%.2f"|format(g.missed_growth) if g.missed_growth else g.error or '&mdash;' }}</td>
+        <td class="amount">${{ "{:,.2f}".format(g.missed_amount) }}</td>
+        <td class="amount">{{ "$%.4f"|format(g.nav_on_due_date) if g.nav_on_due_date else '—' }}</td>
+        <td class="amount">{{ "$%.4f"|format(g.nav_current) if g.nav_current else '—' }}</td>
+        <td class="amount">{{ "%.4f"|format(g.growth_factor) if g.growth_factor else '—' }}x</td>
+        <td class="amount">{{ "${:,.2f}".format(g.current_value) if g.current_value else '—' }}</td>
+        <td class="amount status-missing">{{ "${:,.2f}".format(g.missed_growth) if g.missed_growth else g.error or '—' }}</td>
     </tr>
 {% endfor %}
 </tbody>
@@ -318,16 +318,16 @@
     <tr>
         <td>Box 12a, Code D</td>
         <td>{{ w2.box12_d_label }}</td>
-        <td class="amount">${{ "%.2f"|format(w2.box12_d) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(w2.box12_d) }}</td>
     </tr>
     <tr>
         <td>Box 12b, Code AA</td>
         <td>{{ w2.box12_aa_label }}</td>
-        <td class="amount">${{ "%.2f"|format(w2.box12_aa) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(w2.box12_aa) }}</td>
     </tr>
     <tr style="font-weight: 700;">
         <td colspan="2">Total reported to IRS for {{ w2.tax_year }}</td>
-        <td class="amount">${{ "%.2f"|format(w2.total_reported) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(w2.total_reported) }}</td>
     </tr>
 </tbody>
 </table>
@@ -360,22 +360,22 @@
 {% for s in annual_summaries %}
     <tr>
         <td>{{ s.year }}</td>
-        <td class="amount">${{ "%.2f"|format(s.pretax) }}</td>
-        <td class="amount">${{ "%.2f"|format(s.roth) }}</td>
-        <td class="amount">${{ "%.2f"|format(s.employer) }}</td>
-        <td class="amount">${{ "%.2f"|format(s.total) }}</td>
-        <td class="amount status-unfunded">${{ "%.2f"|format(s.pending) }}</td>
-        <td class="amount">${{ "%.2f"|format(s.total - s.pending) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(s.pretax) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(s.roth) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(s.employer) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(s.total) }}</td>
+        <td class="amount status-unfunded">${{ "{:,.2f}".format(s.pending) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(s.total - s.pending) }}</td>
     </tr>
 {% endfor %}
     <tr style="font-weight: 700;">
         <td>Total</td>
-        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='pretax')) }}</td>
-        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='roth')) }}</td>
-        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='employer')) }}</td>
-        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='total')) }}</td>
-        <td class="amount status-unfunded">${{ "%.2f"|format(annual_summaries|sum(attribute='pending')) }}</td>
-        <td class="amount">${{ "%.2f"|format(annual_summaries|map(attribute='total')|sum - annual_summaries|map(attribute='pending')|sum) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(annual_summaries|sum(attribute='pretax')) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(annual_summaries|sum(attribute='roth')) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(annual_summaries|sum(attribute='employer')) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(annual_summaries|sum(attribute='total')) }}</td>
+        <td class="amount status-unfunded">${{ "{:,.2f}".format(annual_summaries|sum(attribute='pending')) }}</td>
+        <td class="amount">${{ "{:,.2f}".format(annual_summaries|map(attribute='total')|sum - annual_summaries|map(attribute='pending')|sum) }}</td>
     </tr>
 </tbody>
 </table>

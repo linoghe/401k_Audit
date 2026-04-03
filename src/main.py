@@ -204,8 +204,9 @@ def main():
               f"${s['pending']:,.2f} pending, ${funded:,.2f} funded")
 
     # --- Generate outputs ---
-    report_path = os.path.join(project_root, output_cfg.get("report_html", "output/reconciliation_report.html"))
-    csv_path = os.path.join(project_root, output_cfg.get("summary_csv", "output/reconciliation_summary.csv"))
+    today = date.today().strftime("%Y-%m-%d")
+    report_path = os.path.join(project_root, "output", f"reconciliation_report_{today}.html")
+    csv_path = os.path.join(project_root, "output", f"reconciliation_summary_{today}.csv")
 
     print(f"\nGenerating HTML report...")
     report_file = generate_report(
