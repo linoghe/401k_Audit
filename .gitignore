@@ -1,0 +1,9 @@
+output/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Personal financial data — never commit
+data/*.pdf
+data/*.csv
+data/*.xlsx

@@ -1,0 +1,40 @@
+# 401k Audit Configuration
+
+# Fund ticker(s) the 401k was invested in.
+# Used to fetch historical NAV data for growth calculations.
+# Portfolio allocation from Guideline (Aggressive Portfolio, 85% stocks / 15% bonds).
+# Each fund is weighted by its target allocation percentage for blended
+# growth calculations.
+fund_allocations:
+  VTSAX: 46.9   # Vanguard Total Stock Market Index
+  VTMGX: 22.7   # Vanguard Developed Markets Index
+  VEMAX: 11.3   # Vanguard Emerging Markets Stock Index
+  VBTLX: 10.6   # Vanguard Total Bond Market Index
+  VGSLX:  4.7   # Vanguard Real Estate Index
+  VTABX:  3.8   # Vanguard Total International Bond Index
+
+# Date range for the audit
+date_range:
+  start: "2024-09-01"
+  end: "2026-04-01"
+
+# How many calendar days to allow when matching a payroll deduction
+# to an actual deposit. A deduction on Jan 15 with a window of 7
+# would match deposits from Jan 15 through Jan 22.
+match_window_days: 7
+
+# DOL rules require employers to deposit withheld contributions
+# as soon as they can be reasonably segregated from general assets,
+# but no later than the 15th business day of the following month.
+# This threshold flags "late" deposits.
+late_deposit_threshold_days: 15
+
+# Input data paths (relative to project root)
+data:
+  payroll_deductions: "data/payroll_deductions.csv"
+  actual_deposits: "data/actual_deposits.csv"
+
+# Output paths (relative to project root)
+output:
+  report_html: "output/reconciliation_report.html"
+  summary_csv: "output/reconciliation_summary.csv"

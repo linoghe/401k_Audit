@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>401(k) Reconciliation Report</title>
+<style>
+    :root {
+        --color-bg: #ffffff;
+        --color-text: #1a1a2e;
+        --color-muted: #64748b;
+        --color-border: #e2e8f0;
+        --color-accent: #1e40af;
+        --color-danger: #dc2626;
+        --color-warning: #d97706;
+        --color-success: #16a34a;
+        --color-row-alt: #f8fafc;
+        --color-card: #f1f5f9;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        color: var(--color-text);
+        background: var(--color-bg);
+        line-height: 1.6;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; border-bottom: 2px solid var(--color-accent); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.05rem; margin: 1.25rem 0 0.5rem; }
+
+    .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0 1.5rem;
+    }
+
+    .summary-card {
+        background: var(--color-card);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+    }
+
+    .summary-card .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-muted);
+    }
+
+    .summary-card .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 0.15rem;
+    }
+
+    .summary-card .value.danger { color: var(--color-danger); }
+    .summary-card .value.warning { color: var(--color-warning); }
+    .summary-card .value.success { color: var(--color-success); }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        margin: 0.75rem 0 1.5rem;
+    }
+
+    th {
+        background: var(--color-accent);
+        color: #fff;
+        text-align: left;
+        padding: 0.5rem 0.6rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 0.45rem 0.6rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    tr:nth-child(even) { background: var(--color-row-alt); }
+
+    .status-missing, .status-unfunded { color: var(--color-danger); font-weight: 600; }
+    .status-partial { color: var(--color-warning); font-weight: 600; }
+    .status-late { color: var(--color-warning); font-weight: 600; }
+    .status-ok { color: var(--color-success); }
+
+    .amount { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .methodology {
+        background: var(--color-card);
+        border-left: 4px solid var(--color-accent);
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+        border-radius: 0 6px 6px 0;
+        font-size: 0.9rem;
+    }
+
+    .methodology p { margin-bottom: 0.5rem; }
+    .methodology p:last-child { margin-bottom: 0; }
+
+    .callout-danger {
+        background: #fef2f2;
+        border-left: 4px solid var(--color-danger);
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+        border-radius: 0 6px 6px 0;
+    }
+
+    .footer {
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--color-border);
+        font-size: 0.8rem;
+        color: var(--color-muted);
+    }
+
+    @media print {
+        body { padding: 0.5rem; font-size: 10pt; }
+        .summary-card { break-inside: avoid; }
+        table { font-size: 8pt; }
+    }
+</style>
+</head>
+<body>
+
+<h1>401(k) Reconciliation Report</h1>
+<p class="subtitle">Generated {{ generated_date }} &mdash; Audit period: {{ date_range_start }} to {{ date_range_end }}</p>
+
+<h2>Executive Summary</h2>
+
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="label">Pay Periods with 401(k)</div>
+        <div class="value">{{ recon_summary.total_deductions }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Employee Contributions Withheld</div>
+        <div class="value">${{ "%.2f"|format(recon_summary.total_employee_deducted) }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Employer Match Reported</div>
+        <div class="value">${{ "%.2f"|format(recon_summary.total_employer_match) }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Expected in 401(k)</div>
+        <div class="value">${{ "%.2f"|format(recon_summary.total_expected) }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Actually Deposited (Completed)</div>
+        <div class="value {% if recon_summary.total_deposited_completed < recon_summary.total_expected %}danger{% else %}success{% endif %}">${{ "%.2f"|format(recon_summary.total_deposited_completed) }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Shortfall</div>
+        <div class="value danger">${{ "%.2f"|format(recon_summary.total_shortfall) }}</div>
+    </div>
+</div>
+
+{% if recon_summary.unfunded_deposits > 0 %}
+<div class="callout-danger">
+    <strong>{{ recon_summary.unfunded_deposits }} payroll contributions were reported but never funded.</strong>
+    These transactions appear in the Guideline 401(k) system with "Processing" status, meaning the employer submitted the payroll deduction records but never transferred the corresponding funds. Contributions remaining in "Processing" status for more than a few business days indicates the employer failed to remit the withheld funds.
+</div>
+{% endif %}
+
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="label">Clean Matches</div>
+        <div class="value success">{{ recon_summary.clean_matches }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Unfunded (Processing)</div>
+        <div class="value {% if recon_summary.unfunded_deposits > 0 %}danger{% endif %}">{{ recon_summary.unfunded_deposits }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Missing Deposits</div>
+        <div class="value {% if recon_summary.missing_deposits > 0 %}danger{% endif %}">{{ recon_summary.missing_deposits }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Late Deposits</div>
+        <div class="value {% if recon_summary.late_deposits > 0 %}warning{% endif %}">{{ recon_summary.late_deposits }}</div>
+    </div>
+</div>
+
+{% if growth_summ %}
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="label">Missed Investment Growth</div>
+        <div class="value danger">${{ "%.2f"|format(growth_summ.total_missed_growth) }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Owed (Principal + Growth)</div>
+        <div class="value danger">${{ "%.2f"|format(growth_summ.total_owed) }}</div>
+    </div>
+</div>
+{% endif %}
+
+<h2>Line-by-Line Reconciliation</h2>
+
+<table>
+<thead>
+    <tr>
+        <th>Pay Period</th>
+        <th>Pay Date</th>
+        <th class="amount">Employee</th>
+        <th class="amount">Employer</th>
+        <th class="amount">Expected</th>
+        <th>Deposit Date</th>
+        <th class="amount">Deposited</th>
+        <th class="amount">Shortfall</th>
+        <th>Days</th>
+        <th>Status</th>
+    </tr>
+</thead>
+<tbody>
+{% for r in match_results %}
+    <tr>
+        <td>{{ r.pay_period }}</td>
+        <td>{{ r.deduction_date.strftime('%Y-%m-%d') }}</td>
+        <td class="amount">${{ "%.2f"|format(r.deduction_amount) }}</td>
+        <td class="amount">${{ "%.2f"|format(r.employer_match) }}</td>
+        <td class="amount">${{ "%.2f"|format(r.expected_total) }}</td>
+        <td>{{ r.deposit_date.strftime('%Y-%m-%d') if r.deposit_date else '&mdash;' }}</td>
+        <td class="amount">{{ "$%.2f"|format(r.deposit_amount) if r.deposit_amount is not none else '&mdash;' }}</td>
+        <td class="amount {% if r.amount_shortfall > 0 %}status-missing{% endif %}">${{ "%.2f"|format(r.amount_shortfall) }}</td>
+        <td>{{ r.days_to_deposit if r.days_to_deposit is not none else '&mdash;' }}</td>
+        <td class="{% if 'unfunded' in r.status %}status-unfunded{% elif 'missing' in r.status %}status-missing{% elif 'partial' in r.status or 'late' in r.status %}status-partial{% else %}status-ok{% endif %}">{{ r.status|upper }}</td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% if growth_results %}
+<h2>Missed Growth Calculations</h2>
+
+<table>
+<thead>
+    <tr>
+        <th>Pay Period</th>
+        <th>Pay Date</th>
+        <th>Fund</th>
+        <th class="amount">Missed $</th>
+        <th class="amount">NAV (Due Date)</th>
+        <th class="amount">NAV (Current)</th>
+        <th class="amount">Growth Factor</th>
+        <th class="amount">Would Be Worth</th>
+        <th class="amount">Missed Growth</th>
+    </tr>
+</thead>
+<tbody>
+{% for g in growth_results %}
+    <tr>
+        <td>{{ g.pay_period }}</td>
+        <td>{{ g.deduction_date.strftime('%Y-%m-%d') }}</td>
+        <td>{{ g.fund_ticker }}</td>
+        <td class="amount">${{ "%.2f"|format(g.missed_amount) }}</td>
+        <td class="amount">{{ "$%.4f"|format(g.nav_on_due_date) if g.nav_on_due_date else '&mdash;' }}</td>
+        <td class="amount">{{ "$%.4f"|format(g.nav_current) if g.nav_current else '&mdash;' }}</td>
+        <td class="amount">{{ "%.4f"|format(g.growth_factor) if g.growth_factor else '&mdash;' }}x</td>
+        <td class="amount">{{ "$%.2f"|format(g.current_value) if g.current_value else '&mdash;' }}</td>
+        <td class="amount status-missing">{{ "$%.2f"|format(g.missed_growth) if g.missed_growth else g.error or '&mdash;' }}</td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+
+<h2>Methodology</h2>
+
+<div class="methodology">
+    <p><strong>Data sources:</strong> Payroll deduction data was extracted from Gusto pay stub PDFs. Actual deposit data was extracted from Guideline's participant transaction list, which includes both "Requested date" and "Fulfilled date" for each transaction. Corroborating evidence was obtained from the 2025 W-2 (filed by the employer with the IRS) and Guideline's annual participant summaries.</p>
+    <p><strong>Matching:</strong> Each payroll deduction was matched to the nearest Guideline payroll deposit within a {{ match_window_days }}-day window following the pay date. Guideline deposits combine employee contributions and employer match into a single transaction, so the expected deposit amount equals the employee deduction plus the employer match from the corresponding pay stub.</p>
+    <p><strong>Unfunded contributions:</strong> Guideline transactions without a "Fulfilled date" indicate that the employer submitted the payroll contribution record but never transferred the actual funds. Under normal operations, payroll contributions are fulfilled within 3-6 business days. Transactions with no fulfilled date after weeks or months are treated as unfunded. This is independently confirmed by Guideline's annual summaries, which report these amounts as "Pending."</p>
+    <p><strong>Late deposit threshold:</strong> The DOL requires employers to deposit withheld contributions as soon as they can reasonably be segregated from general assets, but no later than the 15th business day of the month following withholding. A threshold of {{ late_threshold_days }} calendar days was used.</p>
+    {% if growth_results %}
+    <p><strong>Growth calculation:</strong> For each unfunded or missing deposit, the total amount was hypothetically invested across the portfolio's actual fund allocation on the date the deposit should have been made. A weighted-average growth factor was computed using actual historical NAV data for each fund, sourced from Yahoo Finance:</p>
+    {% if fund_allocations %}
+    <table style="width: auto; margin: 0.5rem 0 0.5rem 1rem; font-size: 0.85rem;">
+        <tr><th style="padding: 0.25rem 0.75rem;">Fund</th><th style="padding: 0.25rem 0.75rem;" class="amount">Weight</th></tr>
+        {% for ticker, weight in fund_allocations.items() %}
+        <tr><td style="padding: 0.25rem 0.75rem;">{{ ticker }}</td><td style="padding: 0.25rem 0.75rem;" class="amount">{{ weight }}%</td></tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    <p>The blended growth factor formula is:</p>
+    <p style="padding-left: 1rem; font-family: monospace;">
+        blended_factor = &Sigma;(weight_i &times; NAV_current_i / NAV_due_i)<br>
+        missed_growth = missed_amount &times; blended_factor &minus; missed_amount
+    </p>
+    {% endif %}
+</div>
+
+{% if w2 %}
+<h2>Corroborating Evidence: W-2 ({{ w2.tax_year }})</h2>
+
+<div class="methodology">
+    <p>The employer's {{ w2.tax_year }} W-2 (filed with the IRS) reports the following 401(k) contributions withheld from the employee's wages:</p>
+</div>
+
+<table style="width: auto; margin: 0.75rem 0;">
+<thead>
+    <tr>
+        <th>W-2 Box</th>
+        <th>Description</th>
+        <th class="amount">Amount Reported</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td>Box 12a, Code D</td>
+        <td>{{ w2.box12_d_label }}</td>
+        <td class="amount">${{ "%.2f"|format(w2.box12_d) }}</td>
+    </tr>
+    <tr>
+        <td>Box 12b, Code AA</td>
+        <td>{{ w2.box12_aa_label }}</td>
+        <td class="amount">${{ "%.2f"|format(w2.box12_aa) }}</td>
+    </tr>
+    <tr style="font-weight: 700;">
+        <td colspan="2">Total reported to IRS for {{ w2.tax_year }}</td>
+        <td class="amount">${{ "%.2f"|format(w2.total_reported) }}</td>
+    </tr>
+</tbody>
+</table>
+
+<div class="callout-danger">
+    <strong>The employer reported ${{ "{:,.2f}".format(w2.total_reported) }} in employee 401(k) contributions on the {{ w2.tax_year }} W-2, meaning these amounts were withheld from the employee's wages and reported to the IRS as tax-deferred retirement contributions.</strong> However, the reconciliation above shows that a significant portion of this amount was never actually deposited into the 401(k) account.
+</div>
+{% endif %}
+
+{% if annual_summaries %}
+<h2>Corroborating Evidence: Guideline Annual Summaries</h2>
+
+<div class="methodology">
+    <p>Guideline's own annual participant summaries confirm the unfunded amounts. The "Pending" column represents payroll contributions that were reported by the employer but for which funds were never received by Guideline:</p>
+</div>
+
+<table style="width: auto; margin: 0.75rem 0;">
+<thead>
+    <tr>
+        <th>Year</th>
+        <th class="amount">Pre-tax</th>
+        <th class="amount">Roth</th>
+        <th class="amount">Employer</th>
+        <th class="amount">Total Reported</th>
+        <th class="amount">Pending (Unfunded)</th>
+        <th class="amount">Actually Funded</th>
+    </tr>
+</thead>
+<tbody>
+{% for s in annual_summaries %}
+    <tr>
+        <td>{{ s.year }}</td>
+        <td class="amount">${{ "%.2f"|format(s.pretax) }}</td>
+        <td class="amount">${{ "%.2f"|format(s.roth) }}</td>
+        <td class="amount">${{ "%.2f"|format(s.employer) }}</td>
+        <td class="amount">${{ "%.2f"|format(s.total) }}</td>
+        <td class="amount status-unfunded">${{ "%.2f"|format(s.pending) }}</td>
+        <td class="amount">${{ "%.2f"|format(s.total - s.pending) }}</td>
+    </tr>
+{% endfor %}
+    <tr style="font-weight: 700;">
+        <td>Total</td>
+        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='pretax')) }}</td>
+        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='roth')) }}</td>
+        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='employer')) }}</td>
+        <td class="amount">${{ "%.2f"|format(annual_summaries|sum(attribute='total')) }}</td>
+        <td class="amount status-unfunded">${{ "%.2f"|format(annual_summaries|sum(attribute='pending')) }}</td>
+        <td class="amount">${{ "%.2f"|format(annual_summaries|map(attribute='total')|sum - annual_summaries|map(attribute='pending')|sum) }}</td>
+    </tr>
+</tbody>
+</table>
+
+<div class="callout-danger">
+    <strong>Guideline's own records show ${{ "{:,.2f}".format(annual_summaries|sum(attribute='pending')) }} in pending (unfunded) payroll contributions.</strong> This independently confirms the shortfall identified in the reconciliation above.
+</div>
+{% endif %}
+
+{% if fund_data_appendix %}
+<h2>Appendix: Fund Performance Data</h2>
+
+<p>Historical NAV data used in growth calculations ({{ fund_tickers|join(', ') }}):</p>
+
+{% for ticker, data_points in fund_data_appendix.items() %}
+<h3>{{ ticker }}</h3>
+<table>
+<thead>
+    <tr>
+        <th>Date</th>
+        <th class="amount">Close (NAV)</th>
+    </tr>
+</thead>
+<tbody>
+{% for dp in data_points %}
+    <tr>
+        <td>{{ dp.date }}</td>
+        <td class="amount">${{ "%.4f"|format(dp.close) }}</td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{% endfor %}
+{% endif %}
+
+<div class="footer">
+    <p>This report was generated programmatically for reconciliation and audit purposes.</p>
+    <p>Fund performance data sourced from Yahoo Finance. Past performance is used solely to estimate missed growth, not as a projection of future returns.</p>
+    <p>Report generated: {{ generated_date }}</p>
+</div>
+
+</body>
+</html>
