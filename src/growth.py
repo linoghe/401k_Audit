@@ -26,6 +26,7 @@ class GrowthResult:
     current_value: Optional[float]
     missed_growth: Optional[float]
     error: Optional[str] = None
+    principal_still_owed: bool = True
 
 
 def fetch_fund_history(ticker: str, start: str, end: str) -> pd.DataFrame:
@@ -154,6 +155,7 @@ def calculate_missed_growth(
                     growth_factor=factor_due,
                     current_value=value_if_on_time,
                     missed_growth=missed_growth_val,
+                    principal_still_owed=False,
                 ))
             else:
                 growth_results.append(GrowthResult(
@@ -167,6 +169,7 @@ def calculate_missed_growth(
                     current_value=None,
                     missed_growth=None,
                     error="Insufficient NAV data for late-deposit growth calc",
+                    principal_still_owed=False,
                 ))
             continue
         else:
@@ -208,7 +211,9 @@ def calculate_missed_growth(
 
 
 def growth_summary(growth_results: list[GrowthResult]) -> dict:
-    total_missed_principal = sum(g.missed_amount for g in growth_results)
+    total_missed_principal = sum(
+        g.missed_amount for g in growth_results if g.principal_still_owed
+    )
     total_missed_growth = sum(g.missed_growth or 0 for g in growth_results)
     total_current_value = sum(g.current_value or 0 for g in growth_results)
     errors = [g for g in growth_results if g.error]

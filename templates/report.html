@@ -197,8 +197,14 @@
         <div class="label">Missed Investment Growth</div>
         <div class="value danger">${{ "{:,.2f}".format(growth_summ.total_missed_growth) }}</div>
     </div>
+    {% if growth_summ.total_missed_principal > 0 %}
     <div class="summary-card">
-        <div class="label">Total Owed (Principal + Growth)</div>
+        <div class="label">Outstanding Principal</div>
+        <div class="value danger">${{ "{:,.2f}".format(growth_summ.total_missed_principal) }}</div>
+    </div>
+    {% endif %}
+    <div class="summary-card">
+        <div class="label">Total Owed{% if growth_summ.total_missed_principal > 0 %} (Principal + Growth){% endif %}</div>
         <div class="value danger">${{ "{:,.2f}".format(growth_summ.total_owed) }}</div>
     </div>
 </div>
@@ -248,7 +254,7 @@
         <th>Pay Period</th>
         <th>Pay Date</th>
         <th>Fund</th>
-        <th class="amount">Missed $</th>
+        <th class="amount">Amount</th>
         <th class="amount">NAV (Due Date)</th>
         <th class="amount">NAV (Current)</th>
         <th class="amount">Growth Factor</th>
@@ -282,7 +288,7 @@
     <p><strong>Unfunded contributions:</strong> Guideline transactions without a "Fulfilled date" indicate that the employer submitted the payroll contribution record but never transferred the actual funds. Under normal operations, payroll contributions are fulfilled within 3-6 business days. Transactions with no fulfilled date after weeks or months are treated as unfunded. This is independently confirmed by Guideline's annual summaries, which report these amounts as "Pending."</p>
     <p><strong>Late deposit threshold:</strong> The DOL requires employers to deposit withheld contributions as soon as they can reasonably be segregated from general assets, but no later than the 15th business day of the month following withholding. A threshold of {{ late_threshold_days }} calendar days was used.</p>
     {% if growth_results %}
-    <p><strong>Growth calculation:</strong> For each unfunded or missing deposit, the total amount was hypothetically invested across the portfolio's actual fund allocation on the date the deposit should have been made. A weighted-average growth factor was computed using actual historical NAV data for each fund, sourced from Yahoo Finance:</p>
+    <p><strong>Growth calculation:</strong> For each late deposit, the missed growth is the difference between what the money would be worth if invested on-time vs. when it was actually deposited. For deposits that were never funded, the full amount is treated as hypothetically invested on the deduction date. Growth factors use actual historical NAV data for each fund, sourced from Yahoo Finance:</p>
     {% if fund_allocations %}
     <table style="width: auto; margin: 0.5rem 0 0.5rem 1rem; font-size: 0.85rem;">
         <tr><th style="padding: 0.25rem 0.75rem;">Fund</th><th style="padding: 0.25rem 0.75rem;" class="amount">Weight</th></tr>

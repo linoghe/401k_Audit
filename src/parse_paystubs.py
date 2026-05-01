@@ -182,9 +182,10 @@ def read_pdf_text(path: str) -> str:
 
 
 def parse_all_paystubs(pdf_dir: str) -> list[PayStubData]:
-    """Parse all paystub_*.pdf files in a directory."""
-    pattern = os.path.join(pdf_dir, "paystub_*.pdf")
-    pdf_files = sorted(glob.glob(pattern))
+    """Parse all paystub*.pdf files in a directory."""
+    files_underscore = glob.glob(os.path.join(pdf_dir, "paystub_*.pdf"))
+    files_hyphen = glob.glob(os.path.join(pdf_dir, "paystub-*.pdf"))
+    pdf_files = sorted(set(files_underscore + files_hyphen))
 
     if not pdf_files:
         print(f"No paystub_*.pdf files found in {pdf_dir}")

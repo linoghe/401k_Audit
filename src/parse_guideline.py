@@ -156,7 +156,7 @@ def write_actual_deposits_csv(deposits: list[PayrollDeposit], output_path: str):
         ])
 
         for d in deposits:
-            date_to_use = d.fulfilled_date if d.is_fulfilled else d.requested_date
+            date_to_use = d.requested_date
             source = f"Guideline txn {d.transaction_id}"
             if d.is_fulfilled:
                 source += f" (fulfilled {d.fulfilled_date})"

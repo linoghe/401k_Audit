@@ -74,6 +74,10 @@ def load_deposits(path: str) -> pd.DataFrame:
         df["status"] = "Completed"
     if "transaction_id" not in df.columns:
         df["transaction_id"] = ""
+    if "fulfilled_date" in df.columns:
+        df["fulfilled_date"] = pd.to_datetime(df["fulfilled_date"], errors="coerce")
+    else:
+        df["fulfilled_date"] = df["date"]
     return df
 
 
@@ -150,7 +154,10 @@ def reconcile(
         dep_amount = float(best["deposit_amount"])
         dep_status = str(best.get("status", "Completed")).strip()
         dep_date = best["date"]
-        days_delta = (dep_date - ded_date).days
+        fulfilled_date = best.get("fulfilled_date", dep_date)
+        if pd.isna(fulfilled_date):
+            fulfilled_date = dep_date
+        days_delta = (fulfilled_date - ded_date).days
         txn_id = str(best.get("transaction_id", ""))
         source_dep = str(best.get("source_notes", ""))
 
@@ -175,6 +182,7 @@ def reconcile(
             continue
 
         # Deposit is completed — check for shortfall and lateness
+        # Use fulfilled_date (when money actually landed) for lateness
         shortfall = max(0.0, expected_total - dep_amount)
         discs: list[DiscrepancyType] = []
         is_late = is_late_search or days_delta > late_threshold_days
@@ -193,7 +201,7 @@ def reconcile(
             employer_match=emp_match,
             expected_total=expected_total,
             pay_period=pay_period,
-            deposit_date=dep_date,
+            deposit_date=fulfilled_date,
             deposit_amount=dep_amount,
             deposit_status=dep_status,
             amount_shortfall=shortfall,

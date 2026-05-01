@@ -57,10 +57,10 @@ def load_corroborating_evidence(project_root: str) -> dict:
         "source": "2025 W-2 (Gusto)",
     }
 
-    # Guideline annual summaries
+    # Guideline annual summaries (use latest available for each year)
     for filename, year in [
         ("dc_participant_annual_summary (4).csv", 2025),
-        ("dc_participant_annual_summary (3).csv", 2026),
+        ("dc_participant_annual_summary 2026-05-01.csv", 2026),
     ]:
         filepath = os.path.join(project_root, "data", filename)
         if not os.path.exists(filepath):
